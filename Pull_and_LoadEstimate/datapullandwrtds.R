@@ -1,4 +1,4 @@
-###############pull data#############################
+#library
 remotes::install_github("datastreamapp/datastreamr")
 library(datastreamr)
 library(readr)
@@ -10,7 +10,7 @@ library(dplyr)
 
 #import data index
 index <- read_csv(path to "hydat_datastream_pairs.csv")
-
+#pull DataStream records
 setAPIKey('############################')
 call <- list(
   `$select` = "Id,DOI,LocationId,CharacteristicName,ResultUnit,ResultValue,ResultDetectionQuantitationLimitMeasure,ResultAnalyticalMethodID,ResultSampleFraction,ActivityStartDate",
@@ -39,7 +39,7 @@ m<- list(
   `$count` = "false"
 )
 results2meta<-metadata(m)
-
+#summarize DataStream record
 resultssummary<-results2data%>%
   group_by(LocationId,
            CharacteristicName,
@@ -55,10 +55,12 @@ resultssummary<-results2data%>%
 resultssummary$years <- year(resultssummary$end) - year(resultssummary$start) + 1
 resultssummary$npery<-resultssummary$samples/resultssummary$years
 
+#filter summary to only 10+ samples per year and 4 years
 resultssummaryf<-resultssummary%>%
   filter(npery>=10)%>%
   filter(years>=4)
 
+#add location data
 results2loc$LocationId<-results2loc$Id
 
 resultssummaryf <- resultssummaryf %>%
@@ -69,6 +71,8 @@ resultssummaryf <- resultssummaryf %>%
 
 index$Latitude<-index$MonitoringLocationLatitude
 index$Longitude<-index$MonitoringLocationLongitude
+
+#add hydat pairs StationIDs
 resultsWhydat <- resultssummaryf %>%
   inner_join(
     index %>% select(Latitude, Longitude, StationNum),
@@ -82,6 +86,7 @@ resultsWmeta<- resultsWhydat %>%
 setwd("D:")
 write.csv(resultsWmeta,"pairingoverview.csv",row.names=FALSE)
 
+#merge metadata on to the data file
 dataf<- results2data %>%
   inner_join(resultsWmeta,
              by = c("LocationId",
@@ -94,7 +99,7 @@ dataf<- results2data %>%
 
 write.csv(dataf,"data_filtered.csv",row.names=FALSE)
 
-data<-datafnames%>%
+data<-dataf%>%
   drop_na(ResultValue)
 
 
@@ -103,6 +108,7 @@ data$year<-year(data$ActivityStartDate)
 data$month<-month(data$ActivityStartDate)
 data$ym<-paste0(data$year,data$month)
 
+#split data into subsets by location, parameter, fraction, unit, method
 data_list<-split(data,list(data$StationNum,
                            data$CharacteristicName,
                            data$ResultSampleFraction,
@@ -110,7 +116,7 @@ data_list<-split(data,list(data$StationNum,
                            data$ResultAnalyticalMethodID,
                            data$LocationId),
                  drop=TRUE)
-
+#count length of sample gaps
 for(i in seq_along(data_list)){
   
   data_list[[i]] <- data_list[[i]] %>%
@@ -121,6 +127,7 @@ for(i in seq_along(data_list)){
     )
   
 }
+#divide when gaps in samples are >4 months
 
 new_list <- list()  # Initialize new list
 
@@ -143,11 +150,11 @@ for (df_name in names(data_list)) {
     new_list[[paste0(df_name, letters_vec[i])]] <- sub_df
   }
 }
-
+#check new datasets for at least 40 samples over at least 4 years
 new_list <- Filter(function(df) nrow(df) >= 40, new_list)
 new_list <- Filter(function(df) length(unique(df$year)) >= 4, new_list)
 
-
+#filter by at least 10 samples per year and save
 for (i in seq_along(new_list)) {
   new_list[[i]]$samples_u <- unique(nrow(new_list[[i]]))
   new_list[[i]]$samples <- nrow(new_list[[i]])
