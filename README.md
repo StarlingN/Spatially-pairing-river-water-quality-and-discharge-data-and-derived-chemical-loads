@@ -1,0 +1,2 @@
+# Spatially-pairing-river-water-quality-and-discharge-data-and-derived-chemical-loads
+Python and R scripts for pairing Water Survey of Canada (https://www.canada.ca/en/environment-climate-change/services/water-overview/quantity/monitoring/survey/data-products-services.html) and DataStream (https://datastream.org/en-ca/) and then compute daily concentration and load estimates via WRTDS (using R packages EGRET and EGRETci). 
