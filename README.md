@@ -5,3 +5,5 @@ Accociated publication is being submitted to Scientific Data
 
 Ali Reza Shahvaran (Python scripts)
 Noelle Starling (R scripts)
+
+NOTE USERS WILL NEED TO REQUEST AN API KEY FROM DATASTREAM 
