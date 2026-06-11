@@ -58,7 +58,7 @@ m<- list(
 results2meta<-metadata(m)
 
 #merge hydat
-index <- read_csv("D:/concentration_data40/canada_datastream_hydat_matchups+RHBN.csv")
+index <- read_csv("canada_datastream_hydat_matchups+RHBN.csv")
 results2loc$LocationId<-results2loc$Id
 
 resultssummary<-results2data%>%
@@ -280,7 +280,7 @@ for (df in new_list) {
 
 library(tidyverse)
 
-folder_path <- "D:/nonRNpairing/DPfilesV2/samples"
+folder_path <- ""
 
 combined_df <- list.files(
   "samples",
