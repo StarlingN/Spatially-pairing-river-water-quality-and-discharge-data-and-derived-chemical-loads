@@ -1,6 +1,6 @@
+#function for logging why sites wouldn't run
 log_error <- function(parameter, spec, set, Qsite, df_name, msg,
                       logfile = "error_log.txt") {
-  
   write(
     paste(
       format(Sys.time(), "%Y-%m-%d %H:%M:%S"),
@@ -16,6 +16,7 @@ log_error <- function(parameter, spec, set, Qsite, df_name, msg,
     append = TRUE
   )
 }
+#install libraries
 remotes::install_github("datastreamapp/datastreamr")
 library(datastreamr)
 library(readr)
@@ -25,9 +26,7 @@ library(EGRET)
 library(EGRETci)
 library(dplyr)
 
-#import data index
-index <- read_csv(path to "hydat_datastream_pairs.csv")
-
+#pull from DataStream
 setAPIKey('###########################')
 call <- list(
   `$select` = "Id,DOI,LocationId,CharacteristicName,ResultUnit,ResultValue,ResultDetectionQuantitationLimitMeasure,ResultAnalyticalMethodID,ResultSampleFraction,ActivityStartDate",
@@ -60,7 +59,7 @@ results2meta<-metadata(m)
 #merge hydat
 index <- read_csv("canada_datastream_hydat_matchups+RHBN.csv")
 results2loc$LocationId<-results2loc$Id
-
+#summarize available data
 resultssummary<-results2data%>%
   group_by(LocationId,
            CharacteristicName,
@@ -73,7 +72,7 @@ resultssummary<-results2data%>%
     start=min(ActivityStartDate),
     end=max(ActivityStartDate)
   )
-
+#merge in location
 resultssummary <- resultssummary %>%
   left_join(
     results2loc %>% select(LocationId, Latitude, Longitude),
@@ -82,6 +81,7 @@ resultssummary <- resultssummary %>%
 
 index$Latitude<-index$MonitoringLocationLatitude
 index$Longitude<-index$MonitoringLocationLongitude
+#associate lat long to the pairied HYDAT station
 resultsWhydat <- resultssummary %>%
   inner_join(
     index %>% select(Latitude, Longitude, StationNum),
@@ -128,6 +128,7 @@ for(i in seq_along(data_list)){
     )
   
 }
+#divide when there is a sample gap >4 months
 new_list <- list()  # Initialize new list
 
 for (df_name in names(data_list)) {
@@ -149,6 +150,7 @@ for (df_name in names(data_list)) {
     new_list[[paste0(df_name, letters_vec[i])]] <- sub_df
   }
 }
+#keep only 40+ samples and 4+ years
 new_list <- Filter(function(df) nrow(df) >= 40, new_list)
 new_list <- Filter(function(df) length(unique(df$year)) >= 4, new_list)
 
@@ -168,7 +170,7 @@ dir.create("samples", showWarnings = FALSE)
 
 for (df in new_list) {
   
-  # ---------------- meta ----------------
+  # meta
   parameter <- df$CharacteristicName[1]
   spec <- df$ResultSampleFraction[1]
   Qsite <- df$StationNum[1]
@@ -194,7 +196,7 @@ for (df in new_list) {
   ys <- year(datemin)
   me <- month(datemax)
   ye <- year(datemax)
-  
+  #set dates for discharge to be pulled
   Qstart <- as.Date(sprintf("%04d-%02d-01", ys, ms))
   Qend <- ceiling_date(as.Date(sprintf("%04d-%02d-01", ye, me)), "month") - days(1)
   
@@ -251,14 +253,14 @@ for (df in new_list) {
     method
   )
   
-  # ---------------- save CSV ----------------
+  # save
   write.csv(
     samples,
     file = file.path("samples", paste0(safe_name, ".csv")),
     row.names = FALSE
   )
   
-  # ---------------- plot ----------------
+  # plot
   p <- ggplot(samples, aes(x = ActivityStartDate, y = ResultValue)) +
     geom_point(alpha = 0.7, colour = "red") +
     geom_smooth(alpha = 0.5, colour = "blue") +
@@ -278,10 +280,8 @@ for (df in new_list) {
   )
 }
 
-library(tidyverse)
-
 folder_path <- ""
-
+#export data
 combined_df <- list.files(
   "samples",
   pattern = "\\.csv$",
