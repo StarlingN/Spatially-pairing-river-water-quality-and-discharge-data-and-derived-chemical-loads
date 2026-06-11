@@ -79,8 +79,8 @@ resultsWhydat <- resultssummaryf %>%
 resultsWmeta<- resultsWhydat %>%
   inner_join(results2meta,by = c("DOI"))
 
-setwd("D:/nonRNpairing")
-write.csv(resultsWmeta,"indexCarbon.csv",row.names=FALSE)
+setwd("D:")
+write.csv(resultsWmeta,"pairingoverview.csv",row.names=FALSE)
 
 dataf<- results2data %>%
   inner_join(resultsWmeta,
@@ -159,7 +159,7 @@ for (i in seq_along(new_list)) {
 }
 new_list <- Filter(function(df) df$npery[1] >= 10, new_list)
 
-setwd("D:/nonRNpairing")
+setwd("")
 save(new_list, file = "data.RData")
 
 
@@ -195,7 +195,7 @@ INFO_template <- list(
 )
 
 #set directory
-setwd("D:/nonRNpairing")
+setwd("")
 #build Q hosting file
 dir.create("Q", showWarnings = FALSE)
 #import data pulled from Datastream
@@ -277,7 +277,7 @@ for (df in data_list){
   }
   Q_full$Value<-Q_full$Value <- na.approx(Q_full$Value, x = Q_full$Date, na.rm = FALSE)
   Q<-Q_full
-  write.csv(Q, file.path("D:/nonRNpairing/Q", paste0(Qsite, ".csv")),
+  write.csv(Q, file.path("", paste0(Qsite, ".csv")),
             row.names = FALSE)
   filepathQ<-"D:/nonRNpairing/Q"
   filenameQ<-paste0(Qsite,".csv")
@@ -296,7 +296,7 @@ for (df in data_list){
   )
   write.csv(C,"tempC.csv",row.names=FALSE)
   #import file
-  filepathC<-"D:/nonRNpairing"
+  filepathC<-""
   filenameConc<-"tempC.csv"
   C_WRTDS<-readUserSample(filepathC,filenameConc)
   if (file.exists("tempC.csv")) file.remove("tempC.csv")
